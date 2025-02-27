@@ -65,6 +65,7 @@ library(ggrepel)
 library(tidyr)
 library(tidyverse)
 library(stats)
+library(ggsci)
 ```
 
 ## Data and Normalization
@@ -119,7 +120,12 @@ samplesinfo <- samplesinfo%>%
 samplesinfo <- samplesinfo%>%
   mutate_all(~gsub(" years","",.))%>%
   mutate(across(c(histology,sex,stage,tissue),factor))%>%
-  mutate(age = as.numeric(age))
+  mutate(age = as.numeric(age))%>%
+  mutate(tissue = ifelse(tissue == "primary normal lung tissue","normal","tumor"))
+
+samplesinfo$histology <- relevel(samplesinfo$histology, ref = "Neg")
+samplesinfo$stage <- relevel(samplesinfo$stage, ref = "Neg")
+samplesinfo$histology <- relevel(samplesinfo$histology, ref = "Neg")
 
 #Prepare Features Metadata 
 featuresinfo <- fData(gse)
@@ -142,14 +148,14 @@ samplesinfo%>%
 
 # Clustering and PCA analysis
 
-```{r fig.height=15, fig.width=20}
+```{r fig.height=10, fig.width=12}
 corMatrix <- cor(exprs_data, use = "c")
 rownames(samplesinfo) <- colnames(corMatrix)
 pheatmap(corMatrix, annotation_col =samplesinfo[,3:6], annotation_row = samplesinfo[,3:6], cluster_rows = T, cluster_cols = T)
 
 ```
 
-```{r fig.height=15, fig.width=20}
+```{r fig.height=10, fig.width=20}
 pca_gse <- prcomp(t(exprs_data)) # Run PCA analysis
 
 screeplot(pca_gse, npcs=min(10,length(pca_gse$sdev)),type = c("barplot","lines"))
@@ -158,6 +164,7 @@ cbind(samplesinfo, pca_gse$x)%>%
   ggplot(aes(x= PC1, y = PC2, col=tissue, label = paste(tissue)))+
   geom_point()+
   geom_text_repel()
+  
 
 cbind(samplesinfo, pca_gse$x)%>%
   ggplot(aes(x= PC1, y = PC2, col=stage, label = paste(stage)))+
@@ -172,22 +179,23 @@ cbind(samplesinfo, pca_gse$x)%>%
 cbind(samplesinfo, pca_gse$x)%>%
   ggplot(aes(x= PC1, y = PC2, col=title, label = paste(title)))+
   geom_point(size = 5)+
-  geom_text_repel(size = 5)
+  geom_text_repel(size = 5)+
+  ggsci::scale_fill_nejm()
 
 ```
 
 # Filter dataset:
 
-Lowly expressed genes must be filtered out as they can deviate the
-results of gene expression. Here I am applying three separate
-strategies: All samples have a data, at least 50 percent have a data
+First I am filtering out only genes that belong to group-6 in the array as that represents the control genes. Lowly expressed genes must be filtered out as they can deviate the results of gene expression. Here I am applying three separate
+strategies: All samples have a data, at least 50 percent have a data, and 2 or more samples have a data. 
+
 
 ```{r}
 cutoff <- median(exprs_data) #take median of expression dataset
 is_expressed <- exprs_data>cutoff
 keep_all<- rowSums(is_expressed) >=42 #stringent should be present in all samples.
 keep_50 <- rowSums(is_expressed)>=21 #should be present in atleasst 50% samples.
-keep <- rowSums(is_expressed)>2 
+keep <- rowSums(is_expressed)>2 # linent present in atleast 2 samples
 
 gse_filt <- rbind(table(keep),table(keep_50),table(keep_all))
 rownames(gse_filt) <- c("2 or more","50%","100%")
@@ -196,6 +204,7 @@ gse_filt
 gse__2 <- gse[keep,]
 gse_50 <- gse[keep_50,]
 gse_all <- gse[keep_all,]
+
 ```
 
 ## Filter genes:
@@ -206,12 +215,16 @@ gse_all <- gse[keep_all,]
 
 ```{r}
 set.seed(1234)
-design_gse_combined <- model.matrix(~0+factor(samplesinfo$tissue)+factor(samplesinfo$histology)+factor(samplesinfo$stage))
+design_gse_combined <- model.matrix(~histology+tissue, data = samplesinfo)
 design_gse_interaction <- model.matrix(~0+factor(samplesinfo$tissue)*factor(samplesinfo$histology)*factor(samplesinfo$stage))
-colnames(design_gse_combined)<-  c("tumor","normal","Neg","SQ","IB","IIB","IIIA","IIIB","IV","Neg") 
+colnames(design_gse_combined)<-  c("tumor","normal","Neg","SQ","IB","IIB","IIIA","IIIB","IV","Neg_stage") 
 
 fit <- lmFit(exprs(gse_all),design_gse_combined) #fit all the genes
-contrasts_gse <- makeContrasts(tumor-normal,levels =design_gse_combined)
+contrasts_gse <- makeContrasts(tumor_diff = tumor-normal,
+                               stage_diff = ((IB+IIB)-(IIIA+IIIB+IV))-Neg_stage,
+                               tissue_diff = (AD+SQ)-Neg,
+                               tissue_diff_1 = AD-SQ,
+                               levels =design_gse_combined)
 fit2<-contrasts.fit(fit,contrasts_gse)%>%
   eBayes()
 head(topTable(fit2))
