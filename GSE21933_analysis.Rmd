@@ -42,6 +42,7 @@ imbalance regions and genes resided in lung cancer from Asian and
 Caucasian identified by array-comparative genomic hybridization. BMC
 Cancer 2012 Jun 12;12:235. PMID: 22691236
 
+
 ```{=html}
 <!-- This HTML is for increasing and adjusting the size of the html output -->
 <style type="text/css">
@@ -66,6 +67,8 @@ library(tidyr)
 library(tidyverse)
 library(stats)
 library(ggsci)
+library(rmarkdown)
+library(knitr)
 ```
 
 ## Data and Normalization
@@ -73,8 +76,8 @@ library(ggsci)
 ```{r}
 data_id <- "GSE21933"
 
-eset <-getGEO(data_id)
-gse <- eset[[1]]
+eset <-getGEO(data_id) #get dataset
+gse <- eset[[1]] #get gene dataset
 
 head(pData(gse)) #phenotype data
 head(fData(gse)) #feature data
@@ -125,7 +128,7 @@ samplesinfo <- samplesinfo%>%
 
 samplesinfo$histology <- relevel(samplesinfo$histology, ref = "Neg")
 samplesinfo$stage <- relevel(samplesinfo$stage, ref = "Neg")
-samplesinfo$histology <- relevel(samplesinfo$histology, ref = "Neg")
+samplesinfo$tissue <- relevel(as.factor(samplesinfo$tissue), ref = "normal")
 
 #Prepare Features Metadata 
 featuresinfo <- fData(gse)
@@ -186,16 +189,17 @@ cbind(samplesinfo, pca_gse$x)%>%
 
 # Filter dataset:
 
-First I am filtering out only genes that belong to group-6 in the array as that represents the control genes. Lowly expressed genes must be filtered out as they can deviate the results of gene expression. Here I am applying three separate
-strategies: All samples have a data, at least 50 percent have a data, and 2 or more samples have a data. 
+First I am filtering out only genes that belong to group-6 in the array as that represents the control genes. Lowly expressed genes must be filtered out as they can deviate the results of gene expression. The cut off for low expression is median gene expression of each sample. Next, I am applying three seperate strategies: 1) All samples have a data
+                                       2) At least 50%  samples have all the data
+                                       3) At least 2 or more samples have a data.
 
 
 ```{r}
 cutoff <- median(exprs_data) #take median of expression dataset
 is_expressed <- exprs_data>cutoff
 keep_all<- rowSums(is_expressed) >=42 #stringent should be present in all samples.
-keep_50 <- rowSums(is_expressed)>=21 #should be present in atleasst 50% samples.
-keep <- rowSums(is_expressed)>2 # linent present in atleast 2 samples
+keep_50 <- rowSums(is_expressed)>=21 #should be present in at leasst 50% samples.
+keep <- rowSums(is_expressed)>2 # lenient threshold present in at least 2 samples
 
 gse_filt <- rbind(table(keep),table(keep_50),table(keep_all))
 rownames(gse_filt) <- c("2 or more","50%","100%")
@@ -208,6 +212,11 @@ gse_all <- gse[keep_all,]
 ```
 
 ## Filter genes:
+```{r}
+
+
+
+```
 
 # Differential Expression
 
@@ -215,9 +224,8 @@ gse_all <- gse[keep_all,]
 
 ```{r}
 set.seed(1234)
-design_gse_combined <- model.matrix(~histology+tissue, data = samplesinfo)
-design_gse_interaction <- model.matrix(~0+factor(samplesinfo$tissue)*factor(samplesinfo$histology)*factor(samplesinfo$stage))
-colnames(design_gse_combined)<-  c("tumor","normal","Neg","SQ","IB","IIB","IIIA","IIIB","IV","Neg_stage") 
+design_combined <- model.matrix(~0+tissue+histology+stage, data = samplesinfo)
+design_interaction <- model.matrix(~tissue*histology*stage, data = samplesinfo)
 
 fit <- lmFit(exprs(gse_all),design_gse_combined) #fit all the genes
 contrasts_gse <- makeContrasts(tumor_diff = tumor-normal,
@@ -287,5 +295,5 @@ ggplot(result_all, aes(x = logFC, y = -log10(adj.P.Val), color = Contrasts)) +
 
 ```
 
-Reference: tutorial:
-"<https://sbc.shef.ac.uk/geo_tutorial/tutorial.nb.html>"
+# tutorial:
+https://sbc.shef.ac.uk/geo_tutorial/tutorial.nb.html
