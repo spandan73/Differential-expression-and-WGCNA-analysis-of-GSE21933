@@ -5,6 +5,7 @@ date: "2025-01-24"
 output:
   html_document:
     df_print: paged
+output_dir: "/output"
 editor_options: 
   markdown: 
     wrap: 72
@@ -195,7 +196,7 @@ p4 <- cbind(samplesinfo, pca_gse$x)%>%
   ggsci::scale_fill_nejm()
 
 
-ggarrange(p1,p2,p3,p4, ncol = 2, nrow = 2, common.legend = TRUE, legend = "bottom",)
+ggarrange(p1,p2,p3,p4, ncol = 2, nrow = 2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -212,12 +213,12 @@ However, this is a microarray dataset.
 control_list <- rownames(gse@featureData[which(gse@featureData@data$GROUP ==6)]) #create a vector list of controls
 control_matrix <- exprs_data[rownames(exprs_data)%in% control_list,] #isolate a matrix of just controls
 
-mean_control <- data.frame(mean_control)%>%rownames_to_column(var = "control")
+mean_control <- colMeans(control_matrix)
+mean_control <- data.frame(mean_control)%>%
+  rownames_to_column(var = "control")
 colnames(mean_control) <- c("controls","mean")
 
 cat(paste0("Mean of Controls= ",mean(control_matrix),"\n","Mean of data= ",mean(exprs_data),"\n", "Median of Controls= ",median(control_matrix),"\n","Median of data= ",median(exprs_data)))
-
-
 ```
 
 ```{r}
@@ -274,7 +275,7 @@ design_interaction <- model.matrix(~tissue*histology*stage, data = samplesinfo)
 design_gse <- model.matrix(~0+samplesinfo$histology)
 colnames(design_gse)<-c("neg","AD","SQ")
 
-fit <- lmFit(exprs(gse_all),design_gse) #fit all the genes
+fit <- lmFit(exprs(gse_100),design_gse) #fit all the genes
 contrasts_gse <- makeContrasts( ADvsneg = AD-neg, #AD versus negative
                                 SQvsneg = SQ-neg, #SQ versus negative
                                 ADvsSQ = AD-SQ, #AD versus SQ
