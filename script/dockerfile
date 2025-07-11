@@ -1,20 +1,19 @@
 # Base images with R and RStudio pre-installed 
 FROM rocker/rstudio:4.3.1
 
-USER root
-
 # Set Environment variables
 ENV PASSWORD=abc123
-ENV USER=rstudio
 ENV R_LIBS_USER=/home/rstudio/R
 
-# Create a direcotry
-RUN mkdir -p /home/rstudio/R && \
-    chown -R rstudio:rstudio /home/rstudio/R
+# Create a direcotry and give rstudio user permission
+RUN mkdir -p $R_LIBS_USER && chown -R rstudio:rstudio $R_LIBS_USER
+
 # Install required linux libraries and depdnencies
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libssl-dev \
+    libxt-dev \
+    libcairo2-dev \
     libxml2-dev \
     libfftw3-dev \
     libx11-dev \
@@ -27,18 +26,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 # Copy my package installation script
-COPY install_packages.R /home/rstudio
+COPY install_packages.R /tmp/install_packages.R
 
 # Run package installation script 
-RUN chown rstudio:rstudio /home/rstudio/install_packages.R
-USER rstudio
-RUN Rscript /home/rstudio/install_packages.R || cat /home/rstudio/install_packages.R
-
-# Set working dicrectory
-
-WORKDIR /home/rstudio
-
-# Expose Rstudio server: 
-
-EXPOSE 8787
-
+Run Rscript /tmp/install_packages.R
