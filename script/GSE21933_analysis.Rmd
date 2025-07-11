@@ -319,14 +319,15 @@ ggsave(filename = "volcano_all_contrasts.png",path = "../figures")
 ```{r}
 gsg <- goodSamplesGenes(t(exprs_data)) #explore data for WGCNA to ensure all genes and columns are good. 
 
-gsg$allOK #IF TRUE all the values are OK. 
-gsg$goodGenes 
-gsg$goodSamples # all samples are OK (42 of 42)
+print(paste0("All samples are looking good: "))
+head(gsg$allOK) #IF TRUE all the values are OK. 
+head(gsg$goodGenes) #All genes are OK. 
+head(gsg$goodSamples) # all samples are OK (42 of 42)
 ```
 
 ## Chose Threshold
 ```{r}
-powers <- c(1:20)
+powers <- c(1:50)
 
 sft <- pickSoftThreshold(t(exprs_data), powerVector = powers, verbose = 5) #analyze power at multiple threshold values
 
@@ -348,7 +349,7 @@ sfree <- ggplot(sft_df,aes(x = Power, y = SignedR2, label = Power))+
   geom_point(color= "#FF0099",size = 3)+
   geom_text(vjust = 1.5, size = 3.5)+
   geom_hline(yintercept = c(0.8,0.9), linetype= "dashed", color = c("#300666","#300999"),linewidth=1)+
-  geom_vline(xintercept = 10, linetype= "dashed", color = "red",linewidth=0.6)+
+  geom_vline(xintercept = 15, linetype= "dashed", color = "red",linewidth=0.6)+
   labs(title = "Scale-Free Topology Fit Index", y= bquote(paste("Signed ",R^2)))+
   theme_pubr()
 
@@ -358,21 +359,24 @@ mfree <- ggplot(sft_df, aes(x = Power, y = MeanConnectivity, label=Power))+
   geom_point(color = "#FF0099", size = 3)+
   geom_text(vjust=-1, size=3.5)+
   labs(title = "Mean Connectivity", y = "Mean Connectivity", x = "Soft Threshold") +
-  geom_hline(yintercept = 10, linetype= "dashed", color = "#300999",linewidth=1)+
-  geom_vline(xintercept = 10, linetype= "dashed", color = "red",linewidth=0.6)+
+  geom_hline(yintercept = 100, linetype= "dashed", color = "#300999",linewidth=1)+
+  geom_vline(xintercept = 15, linetype= "dashed", color = "red",linewidth=0.6)+
   theme_pubr()
 
 ggarrange(plotlist = list(sfree,mfree), nrow = 2,ncol = 1)
-ggsave(filename="WGCNA_Threshold.png", path = "../figures")
+ggsave(filename="WGCNA_Threshold.png", path = "../figures", dpi = 600, width = 20, height = 10, units = "in" )
 
-chosen_threshold <- sft_df$Power[10]
+chosen_threshold <- sft_df$Power[12]
 mean_conectivity <- sft_df$MeanConnectivity[chosen_threshold]
+scale_free_top <- sft_df$SFT_R2[chosen_threshold]
+
 
 ```
-I chose the threshold to be at 10 as this was falling into 0.8 to 0.9 range on my Scale-Free Topology Fit Index as well as my mean connectivity was `r mean_conectivity`.
+I chose the threshold to be at 15 as this had a mean connectivity of `r mean_conectivity` at scale free topology index of `r scale_free_top`
 
 
 ```{r}
+
 
 
 ```
