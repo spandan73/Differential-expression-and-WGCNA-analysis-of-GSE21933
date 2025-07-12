@@ -1,31 +1,31 @@
+
+
+
 # install_packages.R
 
 # Set CRAN mirror explicitly (important in Docker!)
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 
-# Install BiocManager first
+# Make sure R_LIBS_USER exists and set as library path
+user_lib <- Sys.getenv("R_LIBS_USER")
+dir.create(user_lib, showWarnings = FALSE, recursive = TRUE)
+.libPaths(user_lib)
+
+# Install BiocManager
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packages("BiocManager")
+  install.packages("BiocManager", lib = user_lib)
 }
 
-# Set Bioconductor version if needed (optional)
-# BiocManager::install(version = "3.18") # Optional: match with R version
-
 # CRAN packages
-cran_packages <- c(
-  "tidyverse", "ggplot2", "data.table", "readxl", "ggrepel",
-  "ggsci", "ggpubr", "knitr", "rmarkdown", "pheatmap"
-)
+cran_packages <- c("pheatmap","ggplot2","ggrepel","tidyr","tidyverse","stats","ggsci","rmarkdown","knitr","ggpubr")
 
 # Bioconductor packages
-bioc_packages <- c(
-  "DESeq2", "limma", "edgeR", "GEOquery", "org.Hs.eg.db", "WGCNA"
-)
+bioc_packages <- c("WGCNA","DESeq2","limma","edgeR","GEOquery","org.Hs.eg.db")
 
-# Install CRAN packages
-install.packages(cran_packages, dependencies = TRUE)
+# Install CRAN packages to user lib
+install.packages(cran_packages, lib = user_lib, dependencies = TRUE)
 
-# Install Bioconductor packages
-BiocManager::install(bioc_packages, ask = FALSE, update = FALSE, dependencies = TRUE)
+# Install Bioconductor packages to user lib
+BiocManager::install(bioc_packages, lib = user_lib, ask = FALSE, update = FALSE, dependencies = TRUE)
 
-cat("✅ Packages successfully installed and ready to load.\n")
+cat("Packages successfully installed into", user_lib, "\n")
