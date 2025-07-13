@@ -380,7 +380,8 @@ I chose the threshold to be at 15 as this had a mean connectivity of `r mean_con
 
 ```{r}
 softPower <- 15  # (Example)
-adjacency <- adjacency(expr_matrix, power = softPower)
+adj_matrix <- t(exprs_data)
+adjacency <- adjacency(adj_matrix, power = softPower)
 
 # Turn adjacency into topological overlap
 TOM <- TOMsimilarity(adjacency)
@@ -404,12 +405,12 @@ plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
 
 # STEP-4: Relate Modules to Traits
 # Calculate eigengenes
-MEs <- moduleEigengenes(expr_matrix, colors = dynamicColors)$eigengenes
+MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
 MEs <- orderMEs(MEs)
 
 # Correlate eigengenes with traits
 moduleTraitCor <- cor(MEs, traits, use = "p")
-moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(expr_matrix))
+moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
 
 # Plot correlation heatmap
 labeledHeatmap(Matrix = moduleTraitCor,
@@ -424,7 +425,7 @@ labeledHeatmap(Matrix = moduleTraitCor,
 # STEP-5: GET Hub genes from significant moduels
 # Choose a module of interest (e.g. "blue")
 module <- "blue"
-module_genes <- names(expr_matrix)[which(dynamicColors == module)]
+module_genes <- names(adj_matrix)[which(dynamicColors == module)]
 
 # Calculate intra-modular connectivity (hubness)
 kWithin <- intramodularConnectivity(adjacency, dynamicColors)
