@@ -10,6 +10,8 @@ DOCKER_IMAGE="wgcna"
 DATASET="GSE21933"
 SOFT_POWER=15
 BRANCH="main"  # or dev, etc.
+COMMIT_MSG="Auto-commit: WGCNA output for $DATASET on $(date)"
+
 
 # ==== STEP 1: Start the GCP VM ====
 echo "Starting GCP instance..."
@@ -41,19 +43,29 @@ echo "SSH into the system...Yay!!"
 cd "$REMOTE_PROJECT_DIR"
 echo "Pulling latest code..."
 git pull origin $BRANCH
-echo "Starting Docker container..."
 
+echo "Cleaning up temp files..."
+rm -rf outputs/*_files/ script/build.log
+
+echo "Starting Docker container..."
 docker run --rm \
   -v "$REMOTE_PROJECT_DIR:/home/rstudio/WGCNA" \
   -w /home/rstudio/WGCNA/script \
   "$DOCKER_IMAGE" \
   Rscript run_wgcna_analysis.R "$DATASET" "$SOFT_POWER"
 
-echo "Committing results..."
-git add outputs/ figures/
-git commit -m "Auto-commit: WGCNA output for $DATASET on \$(date)"
-git push origin $BRANCH
-echo "Changes Pushed!"
+echo "Staging results..."
+find outputs -name "*.html" -exec git add {} +
+[ -d figures ] && git add figures/
+
+echo "Committing if changes exist..."
+if git diff --cached --quiet; then
+  echo "No changes to commit."
+else
+  git commit -m "$COMMIT_MSG"
+  git push origin $BRANCH
+  echo "Changes pushed!"
+fi
 EOF
 
 # ==== STEP 4: Shut down the GCP VM ====
