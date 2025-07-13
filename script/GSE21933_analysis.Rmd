@@ -379,7 +379,59 @@ I chose the threshold to be at 15 as this had a mean connectivity of `r mean_con
 
 
 ```{r}
+softPower <- 15  # (Example)
+adjacency <- adjacency(expr_matrix, power = softPower)
 
+# Turn adjacency into topological overlap
+TOM <- TOMsimilarity(adjacency)
+dissTOM <- 1 - TOM
+
+# Hierarchical clustering
+geneTree <- hclust(as.dist(dissTOM), method = "average")
+plot(geneTree, main = "Gene clustering")
+
+# Module identification using dynamic tree cut
+dynamicMods <- cutreeDynamic(dendro = geneTree, distM = dissTOM,
+                             deepSplit = 2, pamRespectsDendro = FALSE,
+                             minClusterSize = 30)
+
+# Assign module colors
+dynamicColors <- labels2colors(dynamicMods)
+plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
+                    dendroLabels = FALSE, hang = 0.03,
+                    addGuide = TRUE, guideHang = 0.05)
+
+
+# STEP-4: Relate Modules to Traits
+# Calculate eigengenes
+MEs <- moduleEigengenes(expr_matrix, colors = dynamicColors)$eigengenes
+MEs <- orderMEs(MEs)
+
+# Correlate eigengenes with traits
+moduleTraitCor <- cor(MEs, traits, use = "p")
+moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(expr_matrix))
+
+# Plot correlation heatmap
+labeledHeatmap(Matrix = moduleTraitCor,
+               xLabels = names(traits),
+               yLabels = names(MEs),
+               colorLabels = FALSE,
+               colors = blueWhiteRed(50),
+               textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+                                  signif(moduleTraitPvalue, 1), ")", sep = ""),
+               main = "Module-Trait Relationships")
+
+# STEP-5: GET Hub genes from significant moduels
+# Choose a module of interest (e.g. "blue")
+module <- "blue"
+module_genes <- names(expr_matrix)[which(dynamicColors == module)]
+
+# Calculate intra-modular connectivity (hubness)
+kWithin <- intramodularConnectivity(adjacency, dynamicColors)
+
+# Order genes by connectivity
+hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]
+head(hub_genes, 10)  # Top 10 hub genes
 
 
 ```
