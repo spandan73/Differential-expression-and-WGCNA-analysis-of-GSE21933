@@ -8,7 +8,7 @@ PROJECT_ID="carbide-eye-418200"
 REMOTE_PROJECT_DIR="/home/spandan_pandya/Differential-expression-and-WGCNA-analysis-of-GSE21933"
 DOCKER_IMAGE="wgcna"
 DATASET="GSE21933"
-SOFT_POWER=15
+SOFT_POWER=10
 BRANCH="main"  # or dev, etc.
 COMMIT_MSG="Auto-commit: WGCNA output for $DATASET on $(date)"
 
