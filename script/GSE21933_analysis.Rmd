@@ -329,7 +329,7 @@ head(gsg$goodSamples) # all samples are OK (42 of 42)
 ```
 
 ## Chose Threshold
-```{r}
+```{r eval=FALSE, include=FALSE}
 powers <- c(1:50)
 
 sft <- pickSoftThreshold(t(exprs_data), powerVector = powers, verbose = 5) #analyze power at multiple threshold values
