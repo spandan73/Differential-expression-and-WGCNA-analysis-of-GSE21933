@@ -7,7 +7,7 @@ output:
     df_print: paged
   output_dir: "../outputs"
 params:
-  soft_power = 15
+  soft_power: 15
 editor_options: 
   markdown: 
     wrap: 72
@@ -382,6 +382,9 @@ I chose the threshold to be at 15 as this had a mean connectivity of  at scale f
 
 ```{r}
 softPower <- params$soft_power  
+
+cat("The soft power is",softPower)
+
 adj_matrix <- exprs_data #filtered genes present in all samples
 adj_matrix <- t(adj_matrix)
 adjacency <- adjacency(adj_matrix, power = softPower)
@@ -398,6 +401,8 @@ plot(geneTree, main = "Gene clustering")
 dynamicMods <- cutreeDynamic(dendro = geneTree, distM = dissTOM,
                              deepSplit = 2, pamRespectsDendro = FALSE,
                              minClusterSize = 30)
+cat("DYnamic tree with modules:")
+table(dynamicMods)
 
 # Assign module colors
 dynamicColors <- labels2colors(dynamicMods)
@@ -405,6 +410,8 @@ plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05)
 
+cat("DYnamic tree modules with colors:")
+table(dynamicColors)
 
 # STEP-4: Relate Modules to Traits
 # Calculate eigengenes
