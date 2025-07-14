@@ -375,7 +375,7 @@ scale_free_top <- sft_df$SFT_R2[chosen_threshold]
 
 
 ```
-I chose the threshold to be at 15 as this had a mean connectivity of `r mean_conectivity` at scale free topology index of `r scale_free_top`
+I chose the threshold to be at 15 as this had a mean connectivity of  at scale free topology index of 
 
 
 ```{r}
