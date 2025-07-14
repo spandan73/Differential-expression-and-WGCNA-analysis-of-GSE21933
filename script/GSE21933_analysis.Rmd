@@ -380,7 +380,8 @@ I chose the threshold to be at 15 as this had a mean connectivity of  at scale f
 
 ```{r}
 softPower <- 15  # (Example)
-adj_matrix <- t(exprs_data)
+adj_matrix <- exprs_data[keep_all,] #filtered genes present in all samples
+adj_matrix <- t(adj_matrix)
 adjacency <- adjacency(adj_matrix, power = softPower)
 
 # Turn adjacency into topological overlap
@@ -409,12 +410,12 @@ MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
 MEs <- orderMEs(MEs)
 
 # Correlate eigengenes with traits
-moduleTraitCor <- cor(MEs, traits, use = "p")
+moduleTraitCor <- cor(MEs, samplesinfo, use = "p")
 moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
 
 # Plot correlation heatmap
 labeledHeatmap(Matrix = moduleTraitCor,
-               xLabels = names(traits),
+               xLabels = names(samplesinfo),
                yLabels = names(MEs),
                colorLabels = FALSE,
                colors = blueWhiteRed(50),
