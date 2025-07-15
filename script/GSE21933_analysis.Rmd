@@ -442,7 +442,7 @@ labeledHeatmap(Matrix = moduleTraitCor,
 
 # STEP-5: GET Hub genes from significant moduels
 # Choose a module of interest (e.g. "blue")
-module <- "turquois"
+module <- c("red","turquoise","blue","pink")
 module_genes <- colnames(adj_matrix)[which(dynamicColors == module)]
 
 module_genes <- colnames(dynamicColors)[which(dynamicColors == module)]
