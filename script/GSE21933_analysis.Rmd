@@ -397,7 +397,8 @@ plot(geneTree, main = "Gene clustering")
 # Module identification using dynamic tree cut
 dynamicMods <- cutreeDynamic(dendro = geneTree, distM = dissTOM,
                              deepSplit = 2, pamRespectsDendro = FALSE,
-                             minClusterSize = 30)
+                             minClusterSize = 30,
+                             cutHeight = 0.25)
 cat("DYnamic tree with modules:")
 table(dynamicMods)
 
@@ -441,10 +442,10 @@ labeledHeatmap(Matrix = moduleTraitCor,
 
 # STEP-5: GET Hub genes from significant moduels
 # Choose a module of interest (e.g. "blue")
-module <- "red"
-module_genes <- names(adj_matrix)[which(dynamicColors == module)]
+module <- "turquois"
+module_genes <- colnames(adj_matrix)[which(dynamicColors == module)]
 
-module_genes <- names(dynamicColors)[which(dynamicColors == module)]
+module_genes <- colnames(dynamicColors)[which(dynamicColors == module)]
 
 # Check that this returns genes
 length(module_genes)  # Should be 2466
