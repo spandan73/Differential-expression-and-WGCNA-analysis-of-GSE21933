@@ -416,8 +416,18 @@ MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
 MEs <- orderMEs(MEs)
 
 # Correlate eigengenes with traits
-moduleTraitCor <- cor(MEs, samplesinfo, use = "p")
+traits <- samplesinfo %>%
+  mutate(across(where(is.factor), ~as.numeric(as.factor(.)))) %>%
+  select(-c("title","sex"))  # Remove non-trait columns like ID if present
+
+#traits <- model.matrix(~ histology + sex + stage + tissue + age, data = samplesinfo)[,-1]
+
+
+moduleTraitCor <- cor(MEs,traits, use = "p")
 moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
+
+all(rownames(MEs) == rownames(traits))  # must be TRUE
+
 
 # Plot correlation heatmap
 labeledHeatmap(Matrix = moduleTraitCor,
