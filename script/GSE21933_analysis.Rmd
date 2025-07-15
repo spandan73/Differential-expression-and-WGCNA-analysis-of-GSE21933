@@ -441,8 +441,15 @@ labeledHeatmap(Matrix = moduleTraitCor,
 
 # STEP-5: GET Hub genes from significant moduels
 # Choose a module of interest (e.g. "blue")
-module <- "turquoise"
+module <- "red"
 module_genes <- names(adj_matrix)[which(dynamicColors == module)]
+
+module_genes <- names(dynamicColors)[which(dynamicColors == module)]
+
+# Check that this returns genes
+length(module_genes)  # Should be 2466
+head(module_genes)    # Should show gene names
+
 
 # Calculate intra-modular connectivity (hubness)
 kWithin <- intramodularConnectivity(adjacency, dynamicColors)
