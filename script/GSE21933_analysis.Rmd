@@ -431,7 +431,7 @@ all(rownames(MEs) == rownames(traits))  # must be TRUE
 
 # Plot correlation heatmap
 labeledHeatmap(Matrix = moduleTraitCor,
-               xLabels = names(samplesinfo),
+               xLabels = names(traits),
                yLabels = names(MEs),
                colorLabels = FALSE,
                colors = blueWhiteRed(50),
