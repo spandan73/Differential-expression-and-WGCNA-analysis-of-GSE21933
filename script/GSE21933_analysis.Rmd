@@ -328,7 +328,7 @@ head(gsg$goodSamples) # all samples are OK (42 of 42)
 ```
 
 ## Chose Threshold
-```{r eval=FALSE, include=FALSE}
+```{r echo=TRUE}
 powers <- c(1:50)
 
 sft <- pickSoftThreshold(t(exprs_data), powerVector = powers, verbose = 5) #analyze power at multiple threshold values
@@ -377,8 +377,8 @@ scale_free_top <- sft_df$SFT_R2[chosen_threshold]
 I chose the threshold to be at 15 as this had a mean connectivity of  at scale free topology index of 
 
 
-```{r}
-softPower <- 10  
+```{r fig.height=9, fig.width=12}
+softPower <- 15
 
 cat("The soft power is",softPower)
 
@@ -431,7 +431,7 @@ labeledHeatmap(Matrix = moduleTraitCor,
 
 # STEP-5: GET Hub genes from significant moduels
 # Choose a module of interest (e.g. "blue")
-module <- "blue"
+module <- "turquoise"
 module_genes <- names(adj_matrix)[which(dynamicColors == module)]
 
 # Calculate intra-modular connectivity (hubness)
