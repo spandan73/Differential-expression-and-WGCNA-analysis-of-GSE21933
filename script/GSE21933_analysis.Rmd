@@ -7,7 +7,7 @@ output:
     df_print: paged
 params:
   soft_power: 15
-  dataset_name: "GSE21933"
+  dataset: "GSE21933"
 editor_options: 
   markdown: 
     wrap: 72
@@ -82,7 +82,7 @@ library(WGCNA)
 ## Data and Normalization
 
 ```{r}
-data_id <- params$dataset_name
+data_id <- params$dataset
 
 eset <-getGEO(data_id) #get dataset
 gse <- eset[[1]] #get gene dataset
