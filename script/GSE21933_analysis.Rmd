@@ -5,9 +5,6 @@ date: "2025-01-24"
 output:
   html_document:
     df_print: paged
-params:
-  soft_power: 15
-  dataset: "GSE21933"
 editor_options: 
   markdown: 
     wrap: 72
@@ -82,7 +79,7 @@ library(WGCNA)
 ## Data and Normalization
 
 ```{r}
-data_id <- params$dataset
+data_id <- "GSE21933"
 
 eset <-getGEO(data_id) #get dataset
 gse <- eset[[1]] #get gene dataset
@@ -381,7 +378,7 @@ I chose the threshold to be at 15 as this had a mean connectivity of  at scale f
 
 
 ```{r}
-softPower <- params$soft_power  
+softPower <- 10  
 
 cat("The soft power is",softPower)
 
