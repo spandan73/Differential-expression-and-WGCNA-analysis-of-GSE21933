@@ -6,7 +6,7 @@ library(rmarkdown)
 #Default Parameters: 
 args <- commandArgs(trailingOnly = TRUE)
 dataset <- ifelse(length(args) >= 1, args[1], "GSE21933")
-soft_power <- ifelse(length(args) >= 2, args[2], 15)
+soft_power <- as.numeric(ifelse(length(args) >= 2, args[2], 15))
 
 # Render Markdown
 rmarkdown::render(
