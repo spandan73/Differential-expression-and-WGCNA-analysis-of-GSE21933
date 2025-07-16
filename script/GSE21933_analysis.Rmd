@@ -389,8 +389,6 @@ adjacency_mat <- adjacency(adj_matrix, power = softPower)
 TOM <- TOMsimilarity(adjacency_mat)
 dissTOM <- 1 - TOM
 
-
-
 # Hierarchical clustering
 geneTree <- hclust(as.dist(dissTOM), method = "average")
 plot(geneTree, main = "Gene clustering")
@@ -411,57 +409,57 @@ plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
 
 cat("DYnamic tree modules with colors:")
 table(dynamicColors)
-
-# STEP-4: Relate Modules to Traits
-# Calculate eigengenes
-MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
-rowname_MEs <- row.names(MEs)
-MEs <- orderMEs(MEs)
-row.names(MEs) <- rowname_MEs
-
-# Correlate eigengenes with traits
-traits <- samplesinfo %>%
-  mutate(across(where(is.factor), ~as.numeric(as.factor(.)))) %>%
-  select(-c("title","sex"))  # Remove non-trait columns like ID if present
-
-#traits <- model.matrix(~ histology + sex + stage + tissue + age, data = samplesinfo)[,-1]
-
-
-moduleTraitCor <- cor(MEs,traits, use = "p")
-moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
-
-all(rownames(MEs) == rownames(traits))  # must be TRUE
-
-
-# Plot correlation heatmap
-labeledHeatmap(Matrix = moduleTraitCor,
-               xLabels = names(traits),
-               yLabels = names(MEs),
-               colorLabels = FALSE,
-               colors = blueWhiteRed(50),
-               textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
-                                  signif(moduleTraitPvalue, 1), ")", sep = ""),
-               main = "Module-Trait Relationships")
-
-# STEP-5: GET Hub genes from significant moduels
-# Choose a module of interest (e.g. "blue")
-module <- "blue"
-module_genes <- colnames(adj_matrix)[which(dynamicColors == module)]
-
-module_genes <- colnames(dynamicColors)[which(dynamicColors == module)]
-
-# Check that this returns genes
-length(module_genes)  # Should be 2466
-head(module_genes)    # Should show gene names
-
-
-# Calculate intra-modular connectivity (hubness)
-kWithin <- intramodularConnectivity(adjacency, dynamicColors)
-
-# Order genes by connectivity
-hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]
-head(hub_genes, 10)  # Top 10 hub genes
-
+# 
+# # STEP-4: Relate Modules to Traits
+# # Calculate eigengenes
+# MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
+# rowname_MEs <- row.names(MEs)
+# MEs <- orderMEs(MEs)
+# row.names(MEs) <- rowname_MEs
+# 
+# # Correlate eigengenes with traits
+# traits <- samplesinfo %>%
+#   mutate(across(where(is.factor), ~as.numeric(as.factor(.)))) %>%
+#   select(-c("title","sex"))  # Remove non-trait columns like ID if present
+# 
+# #traits <- model.matrix(~ histology + sex + stage + tissue + age, data = samplesinfo)[,-1]
+# 
+# 
+# moduleTraitCor <- cor(MEs,traits, use = "p")
+# moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
+# 
+# all(rownames(MEs) == rownames(traits))  # must be TRUE
+# 
+# 
+# # Plot correlation heatmap
+# labeledHeatmap(Matrix = moduleTraitCor,
+#                xLabels = names(traits),
+#                yLabels = names(MEs),
+#                colorLabels = FALSE,
+#                colors = blueWhiteRed(50),
+#                textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+#                                   signif(moduleTraitPvalue, 1), ")", sep = ""),
+#                main = "Module-Trait Relationships")
+# 
+# # STEP-5: GET Hub genes from significant moduels
+# # Choose a module of interest (e.g. "blue")
+# module <- "blue"
+# module_genes <- colnames(adj_matrix)[which(dynamicColors == module)]
+# 
+# module_genes <- colnames(dynamicColors)[which(dynamicColors == module)]
+# 
+# # Check that this returns genes
+# length(module_genes)  # Should be 2466
+# head(module_genes)    # Should show gene names
+# 
+# 
+# # Calculate intra-modular connectivity (hubness)
+# kWithin <- intramodularConnectivity(adjacency, dynamicColors)
+# 
+# # Order genes by connectivity
+# hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]
+# head(hub_genes, 10)  # Top 10 hub genes
+# 
 
 ```
 # tutorial:
