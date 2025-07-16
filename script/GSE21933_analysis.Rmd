@@ -383,11 +383,13 @@ softPower <- 11
 cat("The soft power is",softPower)
 
 adj_matrix <- t(exprs_data) #filtered genes present in all samples
-adjacency <- adjacency(adj_matrix, power = softPower)
+adjacency_mat <- adjacency(adj_matrix, power = softPower)
 
 # Turn adjacency into topological overlap
-TOM <- TOMsimilarity(adjacency)
+TOM <- TOMsimilarity(adjacency_mat)
 dissTOM <- 1 - TOM
+
+
 
 # Hierarchical clustering
 geneTree <- hclust(as.dist(dissTOM), method = "average")
@@ -412,8 +414,10 @@ table(dynamicColors)
 
 # STEP-4: Relate Modules to Traits
 # Calculate eigengenes
-MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
+MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors, softPower = softPower)$eigengenes
 MEs <- orderMEs(MEs)
+
+saveRDS(file = "WGCNA.rds", object = c(adjacency_mat,TOM,MEs))
 
 # Correlate eigengenes with traits
 traits <- samplesinfo %>%
