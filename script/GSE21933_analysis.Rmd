@@ -382,8 +382,7 @@ softPower <- 11
 
 cat("The soft power is",softPower)
 
-adj_matrix <- exprs_data #filtered genes present in all samples
-adj_matrix <- t(adj_matrix)
+adj_matrix <- t(exprs_data) #filtered genes present in all samples
 adjacency <- adjacency(adj_matrix, power = softPower)
 
 # Turn adjacency into topological overlap
