@@ -417,7 +417,10 @@ table(dynamicColors)
 MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors, softPower = softPower)$eigengenes
 MEs <- orderMEs(MEs)
 
-saveRDS(file = "WGCNA.rds", object = c(adjacency_mat,TOM,MEs))
+saveRDS(file = "adjency.rds", object = adjacency_mat)
+saveRDS(file = "TOM.rds", object = TOM)
+saveRDS(file = "MEs.rds", object = MEs)
+
 
 # Correlate eigengenes with traits
 traits <- samplesinfo %>%
