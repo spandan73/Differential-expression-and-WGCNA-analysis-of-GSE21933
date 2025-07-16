@@ -378,7 +378,7 @@ I chose the threshold to be at 15 as this had a mean connectivity of  at scale f
 
 
 ```{r fig.height=9, fig.width=12}
-softPower <- 15
+softPower <- 11
 
 cat("The soft power is",softPower)
 
@@ -442,7 +442,7 @@ labeledHeatmap(Matrix = moduleTraitCor,
 
 # STEP-5: GET Hub genes from significant moduels
 # Choose a module of interest (e.g. "blue")
-module <- c("red","turquoise","blue","pink")
+module <- "blue"
 module_genes <- colnames(adj_matrix)[which(dynamicColors == module)]
 
 module_genes <- colnames(dynamicColors)[which(dynamicColors == module)]
