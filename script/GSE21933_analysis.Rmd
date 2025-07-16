@@ -328,7 +328,7 @@ head(gsg$goodSamples) # all samples are OK (42 of 42)
 ```
 
 ## Chose Threshold
-```{r echo=TRUE}
+```{r eval=FALSE, include=FALSE}
 powers <- c(1:50)
 
 sft <- pickSoftThreshold(t(exprs_data), powerVector = powers, verbose = 5) #analyze power at multiple threshold values
@@ -378,7 +378,7 @@ I chose the threshold to be at 15 as this had a mean connectivity of  at scale f
 
 
 ```{r fig.height=9, fig.width=12}
-softPower <- 11
+softPower <- 15
 
 cat("The soft power is",softPower)
 
@@ -414,13 +414,10 @@ table(dynamicColors)
 
 # STEP-4: Relate Modules to Traits
 # Calculate eigengenes
-MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors, softPower = softPower)$eigengenes
+MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
+rowname_MEs <- row.names(MEs)
 MEs <- orderMEs(MEs)
-
-saveRDS(file = "adjency.rds", object = adjacency_mat)
-saveRDS(file = "TOM.rds", object = TOM)
-saveRDS(file = "MEs.rds", object = MEs)
-
+row.names(MEs) <- rowname_MEs
 
 # Correlate eigengenes with traits
 traits <- samplesinfo %>%
