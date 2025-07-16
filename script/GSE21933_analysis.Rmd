@@ -255,8 +255,10 @@ abline(v = c(1,6), col = c("red","blue"), lty = 2)  # typical cutoff
 
 ## Filter genes:
 ```{r}
-
-
+#Filter only sampels that are group-1 or known genes 
+exon_genes <- row.names(featuresinfo[which(featuresinfo$GROUP == 1),])
+gse[exon_genes,]
+exprs_data <- exprs_data[exon_genes,]
 ```
 
 # Differential Expression
@@ -318,7 +320,7 @@ ggsave(filename = "volcano_all_contrasts.png",path = "../figures")
 ```
 
 # WGCNA
-```{r}
+```{r eval=FALSE, include=FALSE}
 gsg <- goodSamplesGenes(t(exprs_data)) #explore data for WGCNA to ensure all genes and columns are good. 
 
 print(paste0("All samples are looking good: "))
