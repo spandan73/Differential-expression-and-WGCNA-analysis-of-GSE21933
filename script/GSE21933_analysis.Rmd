@@ -449,16 +449,41 @@ names(dynamicColors) <- colnames(adj_matrix)
 kWithin <- intramodularConnectivity(adjacency_mat, dynamicColors)
 
 # Choose a module of interest (e.g. "blue")
-for(m in modules){
-  module_genes <- names(dynamicColors)[which(dynamicColors == m)]
-  length(module_genes)  # Should be 2466
-  head(module_genes)    # Should show gene names
-  hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]# Order genes by connectivity
-  hup_genes <- featuresinfo[hub_genes, "GENE_SYMBOL"]
-  write_lines(hup_genes, file = paste0("../outputs/hub_",m,".txt"))
+library(readr)
 
-  
+# Function to check if a string is a single valid entry
+is_single_valid <- function(x) {
+  !is.na(x) & x != "" & !grepl(";", x)
 }
+
+for (m in unique(dynamicColors)) {
+  module_genes <- names(dynamicColors)[which(dynamicColors == m)]
+  
+  if (length(module_genes) == 0) next
+  
+  # Order genes by intramodular connectivity
+  hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]
+  
+  # Extract columns
+  gene_symbol <- featuresinfo[hub_genes, "GENE_SYMBOL"]
+  ensembl_id <- featuresinfo[hub_genes, "ENSEMBL_GENE_ID"]
+  
+  # Determine final name using the priority rules
+  final_names <- character(length(hub_genes))
+  for (i in seq_along(hub_genes)) {
+    if (is_single_valid(gene_symbol[i])) {
+      final_names[i] <- gene_symbol[i]
+    } else if (is_single_valid(ensembl_id[i])) {
+      final_names[i] <- ensembl_id[i]
+    } else {
+      final_names[i] <- hub_genes[i]  # fallback to original name
+    }
+  }
+  
+  # Write final names to output
+  write_lines(final_names, file = paste0("../outputs/hub_", m, ".txt"))
+}
+
 
 
 
