@@ -317,7 +317,7 @@ ggsave(filename = "volcano_all_contrasts.png",path = "../figures")
 # WGCNA
 
 
-```{r good_samples eval=FALSE, include=FALSE}
+```{r good_samples, eval=FALSE, include=FALSE}
 gsg <- goodSamplesGenes(t(exprs_data)) #explore data for WGCNA to ensure all genes and columns are good. 
 
 print(paste0("All samples are looking good: "))
