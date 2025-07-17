@@ -57,6 +57,7 @@ Cancer 2012 Jun 12;12:235. PMID: 22691236
 ```{r library_Prep, echo=FALSE, message=FALSE, warning=FALSE}
 install.packages("tidyverse")
 install.packages("ggpubr")
+install.packages("reshape2")
 library(readr)
 library(DESeq2)
 library(limma)
