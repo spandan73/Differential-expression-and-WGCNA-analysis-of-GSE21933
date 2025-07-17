@@ -397,7 +397,7 @@ plot(geneTree, main = "Gene clustering")
 
 # Module identification using dynamic tree cut deepsplit allows adjusting granulatity. 
 dynamicMods <- cutreeDynamic(dendro = geneTree, distM = dissTOM,
-                             deepSplit = 1, pamRespectsDendro = FALSE,
+                             deepSplit = 2, pamRespectsDendro = FALSE,
                              minClusterSize = 100) #minClustersize seems optimal with at least 100 genes per cluster. 
 cat("DYnamic tree with modules:")
 table(dynamicMods)
