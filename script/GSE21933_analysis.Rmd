@@ -54,7 +54,7 @@ Cancer 2012 Jun 12;12:235. PMID: 22691236
 </style>
 ```
 
-```{r library_Prep echo=FALSE, message=FALSE, warning=FALSE}
+```{r library_Prep, echo=FALSE, message=FALSE, warning=FALSE}
 install.packages("tidyverse")
 install.packages("ggpubr")
 library(readr)
@@ -152,14 +152,14 @@ are: adenocarcinoma (AD) and Squamous cell carcinoma (SQ).
 
 # Clustering and PCA analysis
 
-```{r correlation fig.height=10, fig.width=12}
+```{r correlation, fig.height=10, fig.width=12}
 corMatrix <- cor(exprs_data, use = "c")
 rownames(samplesinfo) <- colnames(corMatrix)
 pheatmap(corMatrix, annotation_col =samplesinfo[,3:6], annotation_row = samplesinfo[,3:6], cluster_rows = T, cluster_cols = T)
 
 ```
 
-```{r PCA fig.height=10, fig.width=20}
+```{r PCA, fig.height=10, fig.width=20}
 
 #Hierarchical cluster based dimension analysis
 htree <- hclust(dist(t(exprs_data)), method = "average")
@@ -327,7 +327,7 @@ head(gsg$goodSamples) # all samples are OK (42 of 42)
 ```
 
 ## Chose Threshold
-```{r softpower_threshold eval=FALSE, include=FALSE}
+```{r softpower_threshold, eval=FALSE, include=FALSE}
 powers <- c(1:50)
 
 sft <- pickSoftThreshold(t(exprs_data), powerVector = powers, verbose = 5) #analyze power at multiple threshold values
@@ -376,7 +376,7 @@ scale_free_top <- sft_df$SFT_R2[chosen_threshold]
 I chose the threshold to be at 15 as this had a mean connectivity of  at scale free topology index of 
 
 
-```{r WGCNA_analysis fig.height=9, fig.width=12}
+```{r WGCNA_analysis, fig.height=9, fig.width=12}
 softPower <- 15
 
 cat("The soft power is",softPower)
