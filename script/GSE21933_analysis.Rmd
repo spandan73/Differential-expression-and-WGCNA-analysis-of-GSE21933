@@ -444,8 +444,7 @@ heatmap_cor <- labeledHeatmap(Matrix = moduleTraitCor,
 
 print(heatmap_cor)
 
-png(filename = "../figure/WGCNA_ModuleCorr.png",width = 20, height = 10, units = "in")
-ggsave(heatmap_cor, filename="WGCNA_ModuleCorrelation.png", path = "../figures", dpi = 600, width = 20, height = 10, units = "in" )
+png(heatmap_cor,filename = "../figure/WGCNA_ModuleCorr.png",width = 20, height = 10, res = 600,units = "in")
 
 # STEP-5: GET Hub genes from significant moduels
 
