@@ -54,7 +54,7 @@ Cancer 2012 Jun 12;12:235. PMID: 22691236
 </style>
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r library_Prep echo=FALSE, message=FALSE, warning=FALSE}
 install.packages("tidyverse")
 install.packages("ggpubr")
 library(readr)
@@ -78,7 +78,7 @@ library(WGCNA)
 
 ## Data and Normalization
 
-```{r}
+```{r Acquire_Data}
 data_id <- "GSE21933"
 
 eset <-getGEO(data_id) #get dataset
@@ -89,6 +89,8 @@ gse <- eset[[1]] #get gene dataset
 # head(exprs(gse)) #complete expression data set
 
 summary(exprs(gse)) #statistical analysis of all summary()
+
+boxplot(exprs(gse), outline = FALSE, col = "gold") #Visualize the normalization
 
 ```
 
@@ -102,12 +104,7 @@ the figure below shows a boxplot of all the gene count values for each
 sample. As seen below, all the samples have lined up unifromly
 suggesting that the data is already log normalized.
 
-```{r}
-boxplot(exprs(gse), outline = FALSE, col = "gold")
-```
-
 # Inspecting clinical Data
-
 There are several columns within the metadata many of these are
 repeating. The most important of these columns are the column-1 -
 `title`, and columns 36 to 40
@@ -116,7 +113,7 @@ most of the column names have a ":ch1" at the end. This was removed.
 Lastly, the histology and stage columns have no data for negative
 samples. This was changed to "neg".
 
-```{r}
+```{r sample_metadat}
 #Preparing sample metadata
 samplesinfo <- pData(gse) #gettign sample data
 samplesinfo <- samplesinfo[,c(1,36:40)] #There are multiple columns for same data, acquiring relevant metadata information.
@@ -139,6 +136,12 @@ samplesinfo$tissue <- relevel(as.factor(samplesinfo$tissue), ref = "normal")
 featuresinfo <- fData(gse)
 #Prepare expression data
 exprs_data <- exprs(gse)
+
+samplesinfo%>%
+  group_by(tissue, stage,histology)%>%
+  tally()%>%
+  spread(histology,n)
+
 ```
 
 The data set represents 42 lung tissue samples, 21 primary normal lung
@@ -147,23 +150,16 @@ representing six stages of lung cancer IA,IB,IIB,IIIA,IIIB,IV. Further
 two hematological patterns are also represented in tumor samples, these
 are: adenocarcinoma (AD) and Squamous cell carcinoma (SQ).
 
-```{r}
-samplesinfo%>%
-  group_by(tissue, stage,histology)%>%
-  tally()%>%
-  spread(histology,n)
-```
-
 # Clustering and PCA analysis
 
-```{r fig.height=10, fig.width=12}
+```{r correlation fig.height=10, fig.width=12}
 corMatrix <- cor(exprs_data, use = "c")
 rownames(samplesinfo) <- colnames(corMatrix)
 pheatmap(corMatrix, annotation_col =samplesinfo[,3:6], annotation_row = samplesinfo[,3:6], cluster_rows = T, cluster_cols = T)
 
 ```
 
-```{r fig.height=10, fig.width=20}
+```{r PCA fig.height=10, fig.width=20}
 
 #Hierarchical cluster based dimension analysis
 htree <- hclust(dist(t(exprs_data)), method = "average")
@@ -210,7 +206,7 @@ First I am filtering out only genes that belong to group-6 in the array as that 
 However, this is a microarray dataset. 
 
 ## Exploring cut offs: 
-```{r}
+```{r control_identification}
 
 control_list <- rownames(gse@featureData[which(gse@featureData@data$GROUP ==6)]) #create a vector list of controls
 control_matrix <- exprs_data[rownames(exprs_data)%in% control_list,] #isolate a matrix of just controls
@@ -223,7 +219,7 @@ colnames(mean_control) <- c("controls","mean")
 cat(paste0("Mean of Controls= ",mean(control_matrix),"\n","Mean of data= ",mean(exprs_data),"\n", "Median of Controls= ",median(control_matrix),"\n","Median of data= ",median(exprs_data)))
 ```
 
-```{r}
+```{r filter_based_on_samples}
 cutoff <- median(exprs_data) #take median of expression dataset
 is_expressed <- exprs_data>cutoff
 
@@ -254,7 +250,7 @@ abline(v = c(1,6), col = c("red","blue"), lty = 2)  # typical cutoff
 ```
 
 ## Filter genes:
-```{r}
+```{r filter_exons}
 #Filter only sampels that are group-1 or known genes 
 exon_genes <- row.names(featuresinfo[which(featuresinfo$GROUP == 1),])
 gse[exon_genes,]
@@ -265,16 +261,15 @@ exprs_data <- exprs_data[exon_genes,]
 
 ## Combined effect and interaction effect
 
-```{r}
+```{r design_matrix}
 set.seed(1234)
 design_combined <- model.matrix(~0+tissue+ histology+stage, data = samplesinfo)
 design_interaction <- model.matrix(~tissue*histology*stage, data = samplesinfo)
-
 ```
 
 ## AD versus SQ versus neg
 
-```{r}
+```{r ADvsSQ}
 design_gse <- model.matrix(~0+samplesinfo$histology)
 colnames(design_gse)<-c("neg","AD","SQ")
 
@@ -309,7 +304,7 @@ for (i in cont_names){
 
 ```
 
-```{r}
+```{r volcano_plot}
 #volcano plot
 ggplot(result_all, aes(x = logFC, y = -log10(adj.P.Val), color = Contrasts)) +
   geom_point(alpha = 0.5) +
@@ -320,7 +315,9 @@ ggsave(filename = "volcano_all_contrasts.png",path = "../figures")
 ```
 
 # WGCNA
-```{r eval=FALSE, include=FALSE}
+
+
+```{r good_samples eval=FALSE, include=FALSE}
 gsg <- goodSamplesGenes(t(exprs_data)) #explore data for WGCNA to ensure all genes and columns are good. 
 
 print(paste0("All samples are looking good: "))
@@ -330,7 +327,7 @@ head(gsg$goodSamples) # all samples are OK (42 of 42)
 ```
 
 ## Chose Threshold
-```{r eval=FALSE, include=FALSE}
+```{r softpower_threshold eval=FALSE, include=FALSE}
 powers <- c(1:50)
 
 sft <- pickSoftThreshold(t(exprs_data), powerVector = powers, verbose = 5) #analyze power at multiple threshold values
@@ -379,7 +376,7 @@ scale_free_top <- sft_df$SFT_R2[chosen_threshold]
 I chose the threshold to be at 15 as this had a mean connectivity of  at scale free topology index of 
 
 
-```{r fig.height=9, fig.width=12}
+```{r WGCNA_analysis fig.height=9, fig.width=12}
 softPower <- 15
 
 cat("The soft power is",softPower)
@@ -487,14 +484,6 @@ for (m in unique(dynamicColors)) {
   # Write final names to output
   write_lines(final_names, file = paste0("../outputs/hub_", m, ".txt"))
 }
-
-
-
-
-
-# Check that this returns genes
-
-
 
 ```
 # tutorial:
