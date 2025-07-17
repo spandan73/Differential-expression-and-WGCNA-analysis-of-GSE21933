@@ -395,11 +395,10 @@ dissTOM <- 1 - TOM
 geneTree <- hclust(as.dist(dissTOM), method = "average")
 plot(geneTree, main = "Gene clustering")
 
-# Module identification using dynamic tree cut
+# Module identification using dynamic tree cut deepsplit allows adjusting granulatity. 
 dynamicMods <- cutreeDynamic(dendro = geneTree, distM = dissTOM,
-                             deepSplit = 2, pamRespectsDendro = FALSE,
-                             minClusterSize = 30,
-                             cutHeight = 0.25)
+                             deepSplit = 1, pamRespectsDendro = FALSE,
+                             minClusterSize = 100)
 cat("DYnamic tree with modules:")
 table(dynamicMods)
 
@@ -411,58 +410,62 @@ plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
 
 cat("DYnamic tree modules with colors:")
 table(dynamicColors)
-# 
-# # STEP-4: Relate Modules to Traits
-# # Calculate eigengenes
-# MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
-# rowname_MEs <- row.names(MEs)
-# MEs <- orderMEs(MEs)
-# row.names(MEs) <- rowname_MEs
-# 
-# # Correlate eigengenes with traits
-# traits <- samplesinfo %>%
-#   mutate(across(where(is.factor), ~as.numeric(as.factor(.)))) %>%
-#   select(-c("title","sex"))  # Remove non-trait columns like ID if present
-# 
-# #traits <- model.matrix(~ histology + sex + stage + tissue + age, data = samplesinfo)[,-1]
-# 
-# 
-# moduleTraitCor <- cor(MEs,traits, use = "p")
-# moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
-# 
-# all(rownames(MEs) == rownames(traits))  # must be TRUE
-# 
-# 
-# # Plot correlation heatmap
-# labeledHeatmap(Matrix = moduleTraitCor,
-#                xLabels = names(traits),
-#                yLabels = names(MEs),
-#                colorLabels = FALSE,
-#                colors = blueWhiteRed(50),
-#                textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
-#                                   signif(moduleTraitPvalue, 1), ")", sep = ""),
-#                main = "Module-Trait Relationships")
-# 
-# # STEP-5: GET Hub genes from significant moduels
-# # Choose a module of interest (e.g. "blue")
-# module <- "blue"
-# module_genes <- colnames(adj_matrix)[which(dynamicColors == module)]
-# 
-# module_genes <- colnames(dynamicColors)[which(dynamicColors == module)]
-# 
-# # Check that this returns genes
-# length(module_genes)  # Should be 2466
-# head(module_genes)    # Should show gene names
-# 
-# 
-# # Calculate intra-modular connectivity (hubness)
-# kWithin <- intramodularConnectivity(adjacency, dynamicColors)
-# 
-# # Order genes by connectivity
-# hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]
-# head(hub_genes, 10)  # Top 10 hub genes
-# 
 
+# STEP-4: Relate Modules to Traits
+# Calculate eigengenes
+MEs <- moduleEigengenes(adj_matrix, colors = dynamicColors)$eigengenes
+rowname_MEs <- row.names(MEs)
+MEs <- orderMEs(MEs)
+row.names(MEs) <- rowname_MEs
+
+# Correlate eigengenes with traits
+traits <- samplesinfo %>%
+  mutate(across(where(is.factor), ~as.numeric(as.factor(.)))) %>%
+  select(-c("title","sex"))  # Remove non-trait columns like ID if present
+
+#traits <- model.matrix(~ histology + sex + stage + tissue + age, data = samplesinfo)[,-1]
+
+
+moduleTraitCor <- cor(MEs,traits, use = "p")
+moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
+
+all(rownames(MEs) == rownames(traits))  # must be TRUE
+
+
+# Plot correlation heatmap
+labeledHeatmap(Matrix = moduleTraitCor,
+               xLabels = names(traits),
+               yLabels = names(MEs),
+               colorLabels = FALSE,
+               colors = blueWhiteRed(50),
+               textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+                                  signif(moduleTraitPvalue, 1), ")", sep = ""),
+               main = "Module-Trait Relationships")
+
+# STEP-5: GET Hub genes from significant moduels
+# Choose a module of interest (e.g. "blue")
+module <- "blue"
+
+names(dynamicColors) <- colnames(adj_matrix)
+
+module_genes <- names(dynamicColors)[which(dynamicColors == module)]
+
+# Check that this returns genes
+length(module_genes)  # Should be 2466
+head(module_genes)    # Should show gene names
+
+
+# Calculate intra-modular connectivity (hubness)
+kWithin <- intramodularConnectivity(adjacency_mat, dynamicColors)
+
+# Order genes by connectivity
+hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]
+head(hub_genes, 10)  # Top 10 hub genes
+
+hup_genes <- featuresinfo[hub_genes, "GENE_SYMBOL"]
+
+library(readr)
+write_lines(hup_genes, file = "../outputs/hub_blue.txt")
 ```
 # tutorial:
 https://sbc.shef.ac.uk/geo_tutorial/tutorial.nb.html
