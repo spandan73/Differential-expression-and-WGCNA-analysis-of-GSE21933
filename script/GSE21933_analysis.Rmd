@@ -433,7 +433,7 @@ all(rownames(MEs) == rownames(traits))  # must be TRUE
 
 
 # Plot correlation heatmap
-labeledHeatmap(Matrix = moduleTraitCor,
+heatmap_cor <- labeledHeatmap(Matrix = moduleTraitCor,
                xLabels = names(traits),
                yLabels = names(MEs),
                colorLabels = FALSE,
@@ -441,6 +441,11 @@ labeledHeatmap(Matrix = moduleTraitCor,
                textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
                                   signif(moduleTraitPvalue, 1), ")", sep = ""),
                main = "Module-Trait Relationships")
+
+print(heatmap_cor)
+
+png(filename = "../figure/WGCNA_ModuleCorr.png",width = 20, height = 10, units = "in")
+ggsave(heatmap_cor, filename="WGCNA_ModuleCorrelation.png", path = "../figures", dpi = 600, width = 20, height = 10, units = "in" )
 
 # STEP-5: GET Hub genes from significant moduels
 
