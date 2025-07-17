@@ -57,7 +57,7 @@ Cancer 2012 Jun 12;12:235. PMID: 22691236
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 install.packages("tidyverse")
 install.packages("ggpubr")
-
+library(readr)
 library(DESeq2)
 library(limma)
 library(edgeR)
@@ -398,7 +398,7 @@ plot(geneTree, main = "Gene clustering")
 # Module identification using dynamic tree cut deepsplit allows adjusting granulatity. 
 dynamicMods <- cutreeDynamic(dendro = geneTree, distM = dissTOM,
                              deepSplit = 1, pamRespectsDendro = FALSE,
-                             minClusterSize = 100)
+                             minClusterSize = 100) #minClustersize seems optimal with at least 100 genes per cluster. 
 cat("DYnamic tree with modules:")
 table(dynamicMods)
 
@@ -443,29 +443,30 @@ labeledHeatmap(Matrix = moduleTraitCor,
                main = "Module-Trait Relationships")
 
 # STEP-5: GET Hub genes from significant moduels
-# Choose a module of interest (e.g. "blue")
-module <- "blue"
 
 names(dynamicColors) <- colnames(adj_matrix)
-
-module_genes <- names(dynamicColors)[which(dynamicColors == module)]
-
-# Check that this returns genes
-length(module_genes)  # Should be 2466
-head(module_genes)    # Should show gene names
-
-
 # Calculate intra-modular connectivity (hubness)
 kWithin <- intramodularConnectivity(adjacency_mat, dynamicColors)
 
-# Order genes by connectivity
-hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]
-head(hub_genes, 10)  # Top 10 hub genes
+# Choose a module of interest (e.g. "blue")
+for(m in modules){
+  module_genes <- names(dynamicColors)[which(dynamicColors == m)]
+  length(module_genes)  # Should be 2466
+  head(module_genes)    # Should show gene names
+  hub_genes <- module_genes[order(kWithin[module_genes, "kWithin"], decreasing = TRUE)]# Order genes by connectivity
+  hup_genes <- featuresinfo[hub_genes, "GENE_SYMBOL"]
+  write_lines(hup_genes, file = paste0("../outputs/hub_",m,".txt"))
 
-hup_genes <- featuresinfo[hub_genes, "GENE_SYMBOL"]
+  
+}
 
-library(readr)
-write_lines(hup_genes, file = "../outputs/hub_blue.txt")
+
+
+
+# Check that this returns genes
+
+
+
 ```
 # tutorial:
 https://sbc.shef.ac.uk/geo_tutorial/tutorial.nb.html
