@@ -75,6 +75,15 @@ library(rmarkdown)
 library(knitr)
 library(ggpubr)
 library(WGCNA)
+library(reshape2)
+library(readr)
+
+# Function to check if a string is a single valid entry
+is_single_valid <- function(x) {
+  !is.na(x) & x != "" & !grepl(";", x)
+}
+
+
 ```
 
 ## Data and Normalization
@@ -257,8 +266,24 @@ exon_genes <- row.names(featuresinfo[which(featuresinfo$GROUP == 1),])
 gse[exon_genes,]
 exprs_data <- exprs_data[exon_genes,]
 
-universe_file <- featuresinfo[which(row.names(featuresinfo)%in%exon_genes),]$GENE_SYMBOL
-write(universe_file, file = "../outputs/universe_WGCNA.txt")
+universe_symbol <- featuresinfo[exon_genes, "GENE_SYMBOL"]
+universe_ensemble <- featuresinfo[exon_genes, "ENSEMBL_GENE_ID"]
+  
+# Determine final name using the priority rules
+universe_names <- character(length(exon_genes))
+for (i in seq_along(exon_genes)) {
+  if (is_single_valid(universe_symbol[i])) {
+    universe_names[i] <- universe_symbol[i]
+    } else if (is_single_valid(universe_ensemble[i])) {
+      universe_names[i] <- universe_ensemble[i]
+    } else {
+      universe_names[i] <- exon_genes[i]  # fallback to original name
+    }
+  }
+  
+  # Write final names to output
+write_lines(universe_names, file = "../outputs/universe_WGCNA.txt")
+
 ```
 
 # Differential Expression
@@ -436,7 +461,7 @@ all(rownames(MEs) == rownames(traits))  # must be TRUE
 # Plot correlation heatmap
 
 # Load required libraries
-library(reshape2)
+
 # Prepare correlation and p-value matrices
 moduleTraitCor <- cor(MEs, traits, use = "p")
 moduleTraitPvalue <- corPvalueStudent(moduleTraitCor, nSamples = ncol(adj_matrix))
@@ -470,13 +495,6 @@ ggsave(filename = "WGCNA_ModuleCorr.png",path = "../figures")
 
 names(dynamicColors) <- colnames(adj_matrix)
 kWithin <- intramodularConnectivity(adjacency_mat, dynamicColors) # Calculate intra-modular connectivity (hubness)
-
-library(readr)
-
-# Function to check if a string is a single valid entry
-is_single_valid <- function(x) {
-  !is.na(x) & x != "" & !grepl(";", x)
-}
 
 for (m in unique(dynamicColors)) {
   module_genes <- names(dynamicColors)[which(dynamicColors == m)]
