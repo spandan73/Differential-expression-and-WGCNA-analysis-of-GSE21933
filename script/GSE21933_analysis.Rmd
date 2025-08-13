@@ -256,6 +256,9 @@ abline(v = c(1,6), col = c("red","blue"), lty = 2)  # typical cutoff
 exon_genes <- row.names(featuresinfo[which(featuresinfo$GROUP == 1),])
 gse[exon_genes,]
 exprs_data <- exprs_data[exon_genes,]
+
+universe_file <- featuresinfo[which(row.names(featuresinfo)%in%exon_genes),]$GENE_SYMBOL
+write(universe_file, file = "../outputs/universe_WGCNA.txt")
 ```
 
 # Differential Expression
