@@ -12,8 +12,9 @@ SOFT_POWER=10
 BRANCH="main"  # or dev, etc.
 COMMIT_MSG="Auto-commit: WGCNA output for $DATASET on $(date)"
 
-
 # ==== STEP 1: Start the GCP VM ====
+start=$(date +%s)
+
 echo "Starting GCP instance..."
 gcloud compute instances start "$INSTANCE_NAME" --zone "$ZONE" --project "$PROJECT_ID"
 
@@ -32,6 +33,7 @@ echo "SSH is ready. Continuing..."
 # ==== STEP 2: Push latest code from local to GitHub ====
 # echo "Pushing local changes to GitHub..."
 # git add script/  # or specific files
+# find outputs -name "hub_*.txt" -exec git add {} +
 # git commit -m "Auto-sync before GCP run: $(date)"
 # git push origin "$BRANCH"
 
@@ -56,6 +58,8 @@ docker run --rm \
 
 echo "Staging results..."
 find outputs -name "*.html" -exec git add {} +
+find outputs -name "hub_*.txt" -exec git add {} +
+find outputs -name "universe_WGCNA.txt" -exec git add {} +
 [ -d figures ] && git add figures/
 
 echo "Committing if changes exist..."
@@ -74,3 +78,6 @@ gcloud compute instances stop "$INSTANCE_NAME" --zone "$ZONE" --project "$PROJEC
 
 echo "All done"
 
+end=$(date +%s)
+runtime=$((end - start))
+echo "Elapsed time: $(($runtime / 60)) minutes and $(($runtime % 60)) seconds."
