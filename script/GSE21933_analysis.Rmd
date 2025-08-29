@@ -281,7 +281,7 @@ for (i in seq_along(exon_genes)) {
     }
   }
   
-  # Write final names to output
+# Write final names to output
 write_lines(universe_names, file = "../outputs/universe_WGCNA.txt")
 
 ```
@@ -302,7 +302,7 @@ design_interaction <- model.matrix(~tissue*histology*stage, data = samplesinfo)
 design_gse <- model.matrix(~0+samplesinfo$histology)
 colnames(design_gse)<-c("neg","AD","SQ")
 
-fit <- lmFit(exprs(gse_100),design_gse) #fit all the genes
+fit <- lmFit(exprs(gse_100),design_combined) #fit all the genes
 contrasts_gse <- makeContrasts( ADvsneg = AD-neg, #AD versus negative
                                 SQvsneg = SQ-neg, #SQ versus negative
                                 ADvsSQ = AD-SQ, #AD versus SQ
